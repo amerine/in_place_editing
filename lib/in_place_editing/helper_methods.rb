@@ -70,12 +70,20 @@ module InPlaceMacrosHelper
   end
   
   # Renders the value of the specified object and method with in-place editing capabilities.
-  def in_place_editor_field(object, method, tag_options = {}, in_place_editor_options = {})
-    instance_tag = ::ActionView::Helpers::InstanceTag.new(object, method, self)
+  def in_place_editor_field(object_or_name, method, tag_options = {}, in_place_editor_options = {})
+    if object_or_name.respond_to? :to_model
+      object_name = object_or_name.to_model.class.model_name.singular
+      object = object_or_name.to_model
+    else
+      object_name = object_or_name
+      object = nil
+    end
+
+    instance_tag = ::ActionView::Helpers::InstanceTag.new(object_name, method, self, object)
     tag_options = {:tag => "span",
-                   :id => "#{object}_#{method}_#{instance_tag.object.id}_in_place_editor",
+                   :id => "#{object_name}_#{method}_#{instance_tag.object.id}_in_place_editor",
                    :class => "in_place_editor_field"}.merge!(tag_options)
-    in_place_editor_options[:url] = in_place_editor_options[:url] || url_for({ :action => "set_#{object}_#{method}", :id => instance_tag.object.id })
+    in_place_editor_options[:url] = in_place_editor_options[:url] || url_for({ :action => "set_#{object_name}_#{method}", :id => instance_tag.object.id })
     tag = content_tag(tag_options.delete(:tag), h(instance_tag.value(instance_tag.object)),tag_options)
     return tag + in_place_editor(tag_options[:id], in_place_editor_options)
   end

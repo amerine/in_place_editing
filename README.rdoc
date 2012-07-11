@@ -2,11 +2,15 @@
 
 A Rails plugin for in-place editing fields.
 
-= Installation
 
-  gem install in_place_editing
+== Installation
 
-= Usage
+In the +Gemfile+:
+
+  gem 'in_place_editing'
+
+
+== Usage
 
 In your controller define what model and fields you want in-place editing support for.
 
