@@ -14,28 +14,38 @@ module InPlaceMacrosHelper
   # the server should process the value and return the updated value in the body of
   # the reponse. The element will automatically be updated with the changed value
   # (as returned from the server).
+  #
+  # options with (Must be a function) means that you must pass a string like: function(transport, element) {what_to_do()}
   # 
   # Required +options+ are:
   # <tt>:url</tt>::       Specifies the url where the updated value should
   #                       be sent after the user presses "ok".
   # 
   # Addtional +options+ are:
-  # <tt>:rows</tt>::              Number of rows (more than 1 will use a TEXTAREA)
-  # <tt>:cols</tt>::              Number of characters the text input should span (works for both INPUT and TEXTAREA)
-  # <tt>:size</tt>::              Synonym for :cols when using a single line text input.
-  # <tt>:cancel_text</tt>::       The text on the cancel link. (default: "cancel")
-  # <tt>:save_text</tt>::         The text on the save link. (default: "ok")
-  # <tt>:loading_text</tt>::      The text to display while the data is being loaded from the server (default: "Loading...")
-  # <tt>:saving_text</tt>::       The text to display when submitting to the server (default: "Saving...")
-  # <tt>:external_control</tt>::  The id of an external control used to enter edit mode.
-  # <tt>:load_text_url</tt>::     URL where initial value of editor (content) is retrieved.
-  # <tt>:options</tt>::           Pass through options to the AJAX call (see prototype's Ajax.Updater)
-  # <tt>:with</tt>::              JavaScript snippet that should return what is to be sent
-  #                               in the AJAX call, +form+ is an implicit parameter
-  # <tt>:script</tt>::            Instructs the in-place editor to evaluate the remote JavaScript response (default: false)
-  # <tt>:click_to_edit_text</tt>::The text shown during mouseover the editable text (default: "Click to edit")
+  # <tt>:rows</tt>::                    Number of rows (more than 1 will use a TEXTAREA)
+  # <tt>:cols</tt>::                    Number of characters the text input should span (works for both INPUT and TEXTAREA)
+  # <tt>:size</tt>::                    Synonym for :cols when using a single line text input.
+  # <tt>:cancel_text</tt>::             The text on the cancel link. (default: "cancel")
+  # <tt>:save_text</tt>::               The text on the save link. (default: "ok")
+  # <tt>:loading_text</tt>::            The text to display while the data is being loaded from the server (default: "Loading...")
+  # <tt>:saving_text</tt>::             The text to display when submitting to the server (default: "Saving...")
+  # <tt>:external_control</tt>::        The id of an external control used to enter edit mode.
+  # <tt>:load_text_url</tt>::           URL where initial value of editor (content) is retrieved.
+  # <tt>:options</tt>::                 Pass through options to the AJAX call (see prototype's Ajax.Updater)
+  # <tt>:with</tt>::                    JavaScript snippet that should return what is to be sent
+  #                                     in the AJAX call, +form+ is an implicit parameter
+  # <tt>:script</tt>::                  Instructs the in-place editor to evaluate the remote JavaScript response (default: false)
+  # <tt>:click_to_edit_text</tt>::      The text shown during mouseover the editable text (default: "Click to edit")
+  # <tt>:on_complete</tt>::             (Must be a function)Code run if update successful with server. Also if user cancels the form (see https://prototype.lighthouseapp.com/projects/8887/tickets/243).
+  # <tt>:on_failure</tt>::              (Must be a function)Code run if update failed with server
+  # <tt>:keep_javascript_variable</tt>::If true, a var will be created for the editor: "#{field_id.gsub('-','_')}_editor"
+  # <tt>:raw_options</tt>::             Hash to specify additionnal options for InPlaceEditor. No processing on keys/values will be done (other than stringify_keys)
   def in_place_editor(field_id, options = {})
-    function =  "new Ajax.InPlaceEditor("
+    if options[:keep_javascript_variable]
+      function =  "var #{field_id.gsub('-','_')}_editor = new Ajax.InPlaceEditor("
+    else
+      function =  "new Ajax.InPlaceEditor("
+    end
     function << "'#{field_id}', "
     function << "'#{url_for(options[:url])}'"
 
@@ -60,8 +70,10 @@ module InPlaceMacrosHelper
     js_options['callback']   = "function(form) { return #{options[:with]} }" if options[:with]
     js_options['clickToEditText'] = %('#{options[:click_to_edit_text]}') if options[:click_to_edit_text]
     js_options['textBetweenControls'] = %('#{options[:text_between_controls]}') if options[:text_between_controls]
-    js_options['onComplete'] = %('#{options[:on_complete]}') if options[:on_complete]
-    js_options['onFailure'] = %('#{options[:on_failure]}') if options[:on_failure]
+    js_options['onComplete'] = %(#{options[:on_complete]}) if options[:on_complete]
+    js_options['onFailure'] = %(#{options[:on_failure]}) if options[:on_failure]
+    js_options.merge!(options[:raw_options].stringify_keys) if options[:raw_options]
+
     function << (', ' + options_for_javascript(js_options)) unless js_options.empty?
     
     function << ')'
