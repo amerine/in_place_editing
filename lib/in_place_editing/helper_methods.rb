@@ -91,12 +91,19 @@ module InPlaceMacrosHelper
       object = nil
     end
 
-    instance_tag = ::ActionView::Helpers::InstanceTag.new(object_name, method, self, object)
+    if defined?(ActionView::Base::InstanceTag)
+      instance_tag = ::ActionView::Helpers::InstanceTag.new(object_name, method, self, object)
+      content = instance_tag.value(instance_tag.object)
+    else
+      instance_tag = ActionView::Helpers::Tags::TextField.new(object_name, method, self, object || {})
+      content = instance_tag.object.public_send(method.to_s)
+    end
+
     tag_options = {:tag => "span",
                    :id => "#{object_name}_#{method}_#{instance_tag.object.id}_in_place_editor",
                    :class => "in_place_editor_field"}.merge!(tag_options)
     in_place_editor_options[:url] = in_place_editor_options[:url] || url_for({ :action => "set_#{object_name}_#{method}", :id => instance_tag.object.id })
-    tag = content_tag(tag_options.delete(:tag), h(instance_tag.value(instance_tag.object)),tag_options)
+    tag = content_tag(tag_options.delete(:tag), h(content),tag_options)
     return tag + in_place_editor(tag_options[:id], in_place_editor_options)
   end
 end

@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "in_place_editing"
-  s.version     = "1.2.0"
+  s.version     = "1.2.1"
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["David Heinemeier Hansson", "Jeremy Kemper", "Jose Fernandez", "Pawel Stradomski, Mark Turner"]
   s.email       = ["mark@amerine.net"]
